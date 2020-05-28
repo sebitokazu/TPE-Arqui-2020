@@ -1,0 +1,6 @@
+[user]
+	name = sebitokazu
+	email = sebitokazu@gmail.com
+
+[credential]
+	helper = "!f() { /root/.vscode-server/bin/5763d909d5f12fe19f215cbfdd29a91c0fa9208a/node /tmp/vscode-remote-containers-ed14d8ba053ccb0e7b9aa42cc50c9ed2bfd1f4d4.js $*; }; f"
