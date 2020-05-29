@@ -3,5 +3,7 @@
 
 void keyboard_handler();
 char key_pooling();
+int isBufferEmpty();
+char getBufferChar();
 
 #endif

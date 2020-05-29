@@ -21,13 +21,15 @@ void initVideo()
 {
     current_x = 0;
     current_y = 0;
-    printCursorPosition();
+
+    ///printCursorPosition();
 }
 
 static char* getPixelDataByPosition(int x,int y){
     return screen_info->framebuffer + y * screen_info->pitch + (x * (screen_info->bpp / 8));
     //return screen_info->framebuffer + (x + y * screen_info->width) * 3;
 }
+
 
 void setColor(uint8_t r, uint8_t g, uint8_t b){
     red = r;
@@ -55,7 +57,7 @@ int printChar(char c){
 int printCharLoc(int x, int y, char c){
     if (c == '\n')
     {
-        clearCursorPosition();
+        //clearCursorPosition();
         printNewLine();
     }
     else if (c == '\b')
@@ -80,13 +82,22 @@ int printCharLoc(int x, int y, char c){
         if (current_x >= WIDTH)
             printNewLine();
     }
-    printCursorPosition();
+   // printCursorPosition();
 }
 
-int printString(char* str){
-    while (*str != '\0'){
+int printString(char* str,int cant){
+    int i = cant;
+    while (i > 0 && *str != '\0')
+    {
         printCharLoc(current_x, current_y, *str++);
+        i--;
     }
+    return cant - i;
+}
+
+void set_cursor_position(int x, int y){
+    current_x = x;
+    current_y = y;
 }
 
 void printNewLine(){
@@ -104,11 +115,11 @@ void clearScreen()
     }
     current_x = 0;
     current_y = 0;
-    printCursorPosition();
+    //printCursorPosition();
 }
 
 void backspace(){
-    clearCursorPosition();
+    //clearCursorPosition();
     if(current_x>0){
         current_x -= CHAR_WIDTH;
     }

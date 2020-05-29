@@ -13,9 +13,10 @@ GLOBAL _irq03Handler
 GLOBAL _irq04Handler
 GLOBAL _irq05Handler
 
-GLOBAL _irq128Handler
+GLOBAL _irq80Handler
 
 GLOBAL _exception0Handler
+GLOBAL _exception6Handler
 
 EXTERN irqDispatcher
 EXTERN exceptionDispatcher
@@ -25,7 +26,6 @@ EXTERN syscallDispatcher
 SECTION .text
 
 %macro pushState 0
-	push rax
 	push rbx
 	push rcx
 	push rdx
@@ -57,10 +57,10 @@ SECTION .text
 	pop rdx
 	pop rcx
 	pop rbx
-	pop rax
 %endmacro
 
 %macro irqHandlerMaster 1
+	push rax
 	pushState
 
 	mov rdi, %1 ; pasaje de parametro
@@ -71,21 +71,38 @@ SECTION .text
 	out 20h, al
 
 	popState
+	pop rax
 	iretq
 %endmacro
 
 
 
 %macro exceptionHandler 1
+	push rax
 	pushState
 
-	mov rdi, %1 ; pasaje de parametro
 	call exceptionDispatcher
+
+	popState
+	pop rax
+	iretq
+%endmacro
+
+%macro syscallHandler 1
+	pushState
+
+	mov r9, r8
+	mov r8, rcx
+	mov rcx,rdx
+	mov rdx,rsi
+	mov rsi,rdi
+	mov rdi,rax
+	
+	call syscallDispatcher
 
 	popState
 	iretq
 %endmacro
-
 
 _hlt:
 	sti
@@ -142,12 +159,16 @@ _irq04Handler:
 _irq05Handler:
 	irqHandlerMaster 5
 
-_irq128Handler:
-	irqHandlerMaster 128
+_irq80Handler:
+	syscallHandler rax
 
 ;Zero Division Exception
 _exception0Handler:
 	exceptionHandler 0
+
+;Invalid Opcode Exception
+_exception6Handler:
+	exceptionHandler 6
 
 haltcpu:
 	cli

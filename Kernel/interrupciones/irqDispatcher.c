@@ -1,6 +1,7 @@
 #include <time.h>
 #include <stdint.h>
 #include <keyboardDriver.h>
+#include <syscalls.h>
 
 static void int_20();
 static void int_21();
@@ -14,7 +15,7 @@ void irqDispatcher(uint64_t irq) {
 		case 1:
 			int_21();
 			break;
-		case 128:
+		case 80:
 			int_80();
 			break;
 		}
@@ -30,5 +31,5 @@ void int_21(){
 }
 
 void int_80(){
-	//syscall_handler();
+	syscallDispatcher();
 }

@@ -4,11 +4,12 @@
 #include <stdint.h>
 
 int printChar(char c);
-int printString(char *str);
+int printString(char *str, int cant);
 void setColor(uint8_t r, uint8_t g, uint8_t b);
 void clearScreen();
 void initVideo();
 void printNewLine();
+void set_cursor_position(int x, int y);
 
 struct vbe_mode_info_structure
 {

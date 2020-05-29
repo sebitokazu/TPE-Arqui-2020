@@ -1,4 +1,6 @@
 #include <keyboardDriver.h>
+#include <video_driver.h>
+
 
 const char scancodes[58][2]=
         {    
@@ -7,15 +9,16 @@ const char scancodes[58][2]=
             /*CTRL*/{0,0},{'a','A'},{'s','S'},{'d','D'},{'f','F'},{'g','G'},{'h','H'},{'j','J'},{'k','K'},{'l','L'},{';',';'},{'\'','\"'},{'`','~'},/*LSHIFT*/{0,0},{'\\','|'},
             {'z','Z'} ,{'x','X'},{'c','C'},{'v','V'},{'b','B'},{'n','N'},{'m','M'},{',','<'},{'.','>'},{'/','?'},/*RSHIFT*/{0,0},{0,0},/*LALT*/{0,0},{' ',' '}
         };
+#define BUFFER_LENGTH 150
+static char buffer[BUFFER_LENGTH];
+static unsigned int buffer_pos = 0;
+static unsigned int read_pos = 0;
+
 static int capsLock = 0, leftShift = 0, rightShift = 0;
 
-static char *buffer;
-
-
 void keyboard_handler(){
-    int capsLock = 0;
-    int keypressed = getKey();
-
+    //int capsLock = 0;
+    //int keypressed = getKey();
     write_key();
 }
 
@@ -59,8 +62,23 @@ void write_key(){
         }
     }
 
-    if (value != 0)
-        printChar(value);
+    if (value != 0){
+        buffer[buffer_pos++] = value;
+        if(buffer_pos == BUFFER_LENGTH)
+            buffer_pos = 0;
+        //printChar(value);
+    }
+}
+
+char getBufferChar(){
+    char c = buffer[read_pos++];
+    if (read_pos == BUFFER_LENGTH)
+        read_pos = 0;
+    return c;
+}
+
+int isBufferEmpty(){
+    return read_pos == buffer_pos;
 }
 
 char key_pooling(){
