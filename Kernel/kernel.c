@@ -4,9 +4,9 @@
 #include <moduleLoader.h>
 #include <naiveConsole.h>
 #include <idtLoader.h>
-//#include <RTC.h>
-//#include <keyboardDriver.h>
 #include <video_driver.h>
+#include <syscallDispatcher.h>
+#include <libasm.h>
 
 
 extern uint8_t text;
@@ -106,23 +106,20 @@ int main()
 	ncNewline();
 
 	ncPrint("[Finished]");
+	*/
 
-	ncClear();
-	ncPrintDec(getCPUTemperature());
-	ncNewline();
-	char *location;
-	ncPrint(cpuVendor(location));
-	//clearScreen();*/
 	initVideo();
 	load_idt();
-	
-	//printString("Welcome to Linux!\b");
+	setup_syscalls();
+	((EntryPoint)sampleCodeModuleAddress)();
+	//char *buf = "Tommy";
+	//sys_read(1, buf, 5);
+	//int cant = sys_write(1, buf, 3);
+	//int cant = sys_write(1, buf, 3);
+	//sys_write(1, buf, cant+2);
+	//sys_read(1, buf, 5);
 	//printNewLine();
-	//printString("Ahre, es el tpe ?)");
-	//printNewLine();
-
-	while(1);
-	//setColor(66, 245, 173);
-	//clearScreen();
+	//sys_write(1, buf, 5);
+	//while (1);
 	return 0;
 }
