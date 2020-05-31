@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-int[2] getScreenSize();
 int printChar(char c);
 int printString(char *str, int cant);
 int printRect(int width, int height, int x, int y);

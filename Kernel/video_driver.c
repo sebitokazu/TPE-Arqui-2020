@@ -8,7 +8,6 @@ static int scale = 1;
 
 const int WIDTH = 1024;
 const int HEIGHT = 768;
-const int screenSize[2] = {WIDTH, HEIGHT};
 
 static int currentColor = 0xFFFFFF;
 static int current_x, current_y;
@@ -19,10 +18,6 @@ static int cursorLastPosInRow[64] = {0};
 static void backspace();
 int printCharLoc(int x, int y, char c);
 
-int* getScreenSize(){
-
-    return screenSize;
-}
 
 void initVideo()
 {
