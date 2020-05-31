@@ -3,8 +3,10 @@
 
 #include <stdint.h>
 
+int[2] getScreenSize();
 int printChar(char c);
 int printString(char *str, int cant);
+int printRect(int width, int height, int x, int y);
 void setColor(uint8_t r, uint8_t g, uint8_t b);
 void clearScreen();
 void initVideo();

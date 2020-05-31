@@ -81,6 +81,7 @@ SECTION .text
 	push rax
 	pushState
 
+	mov rdi, %1
 	call exceptionDispatcher
 
 	popState

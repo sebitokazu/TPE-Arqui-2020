@@ -5,17 +5,24 @@ static struct vbe_mode_info_structure* screen_info = 0x5C00;
 
 static uint8_t red = 0xFF, blue = 0xFF, green = 0xFF;
 static int scale = 1;
+
 const int WIDTH = 1024;
 const int HEIGHT = 768;
-static int currentColor = 0xFFFFFF;
+const int screenSize[2] = {WIDTH, HEIGHT};
 
-static int current_x, current_y ;
+static int currentColor = 0xFFFFFF;
+static int current_x, current_y;
 
 //HEIGHT / (CHAR_HEIGHT+SPACING) = 64
 static int cursorLastPosInRow[64] = {0};
 
 static void backspace();
 int printCharLoc(int x, int y, char c);
+
+int* getScreenSize(){
+
+    return screenSize;
+}
 
 void initVideo()
 {
@@ -168,7 +175,9 @@ int printColorRect(int width, int height, int x, int y, int rgb){
 
 int printRect(int width, int height, int x, int y)
 {
-    char* pos = getPixelDataByPosition(x,y);
+    if(x >= WIDTH || y >= HEIGHT)
+        return -1;
+    char *pos = getPixelDataByPosition(x, y);
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width;j++){
@@ -176,5 +185,6 @@ int printRect(int width, int height, int x, int y)
         }
         pos += screen_info->pitch;
     }
-}
 
+    return 0;
+}

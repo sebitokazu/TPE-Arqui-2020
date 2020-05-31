@@ -112,14 +112,5 @@ int main()
 	load_idt();
 	setup_syscalls();
 	((EntryPoint)sampleCodeModuleAddress)();
-	//char *buf = "Tommy";
-	//sys_read(1, buf, 5);
-	//int cant = sys_write(1, buf, 3);
-	//int cant = sys_write(1, buf, 3);
-	//sys_write(1, buf, cant+2);
-	//sys_read(1, buf, 5);
-	//printNewLine();
-	//sys_write(1, buf, 5);
-	//while (1);
 	return 0;
 }

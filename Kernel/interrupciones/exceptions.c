@@ -1,6 +1,7 @@
 
 #define ZERO_EXCEPTION_ID 0
 #define INVALID_OPCODE_ID 6
+#include <video_driver.h>
 
 static void zero_division();
 static void invalid_opcode();
@@ -20,6 +21,7 @@ void exceptionDispatcher(int exception) {
 
 static void zero_division() {
 	// Handler para manejar excepcíon
+	
 }
 
 static void invalid_opcode(){
