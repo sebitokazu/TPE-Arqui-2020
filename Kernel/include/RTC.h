@@ -4,5 +4,9 @@
 int getRTCHours();
 int getRTCMinutes();
 int getRTCSeconds();
+int getRTCWeekday();
+int getRTCDay();
+int getRTCMonth();
+int getRTCYear();
 
 #endif

@@ -11,6 +11,7 @@ void clearScreen();
 void initVideo();
 void printNewLine();
 void set_cursor_position(int x, int y);
+int *getScreenSize();
 
 struct vbe_mode_info_structure
 {

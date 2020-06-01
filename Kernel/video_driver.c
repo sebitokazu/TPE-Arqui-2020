@@ -8,6 +8,7 @@ static int scale = 1;
 
 const int WIDTH = 1024;
 const int HEIGHT = 768;
+int screenSize[2] = {1024, 768};
 
 static int currentColor = 0xFFFFFF;
 static int current_x, current_y;
@@ -32,6 +33,9 @@ static char* getPixelDataByPosition(int x,int y){
     //return screen_info->framebuffer + (x + y * screen_info->width) * 3;
 }
 
+int* getScreenSize(){
+    return screenSize;
+}
 
 void setColor(uint8_t r, uint8_t g, uint8_t b){
     red = r;

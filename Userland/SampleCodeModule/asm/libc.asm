@@ -1,5 +1,6 @@
 GLOBAL write
 GLOBAL read
+GLOBAL time
 
 section .text
 
@@ -27,7 +28,12 @@ read:
 	pop rbp
 	ret
 
+time:
+	push rbp
+	mov rbp,rsp
 
-section .rodata
-text dq "Hello"
-len equ $ - text
+	mov rax,5
+	int 80h
+
+	leave
+	ret
