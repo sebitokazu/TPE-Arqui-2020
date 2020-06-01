@@ -4,10 +4,11 @@
 #include <keyboardDriver.h>
 #include <interrupts.h>
 #include <RTC.h>
+#include <libasm.h>
 
 #define NULL 0
 
-#define SYSCALLS_COUNT 5
+#define SYSCALLS_COUNT 7
 
 int syscall_write(unsigned int fd, char* str, int count);
 int syscall_read(unsigned int fd, char* buffer, int count);
@@ -15,6 +16,8 @@ int syscall_print_rect(int width, int height, int x, int y);
 int syscall_screen_width();
 int syscall_screen_height();
 int syscall_time(uint32_t* struct_tm);
+int syscall_cpu_vendor(char *buffer);
+int syscall_cpu_model(char *buffer);
 
 int (*syscall[SYSCALLS_COUNT])(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) = {};
 
@@ -80,6 +83,37 @@ int syscall_time(uint32_t* struct_tm){
     return 0;
 }
 
+int syscall_cpu_vendor(char* buffer){
+    char buf[16];
+    cpuVendor(buf);
+    int i = 0;
+    while (buf[i] != '\0')
+    {
+        buffer[i] = buf[i];
+        i++;
+    }
+    return 0;
+}
+
+int syscall_cpu_model(char* buffer){
+    if(isCpuModelPresent()){
+        char buf[32];
+        cpuModel(0x80000002, buf);
+        cpuModel(0x80000003, buf+16);
+        int i=0;
+        while (buf[i] != '\0')
+        {
+            buffer[i] = buf[i];
+            i++;
+        }
+        return 1;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
 void setup_syscalls()
 {
     syscall[0] = syscall_read;
@@ -88,6 +122,8 @@ void setup_syscalls()
     syscall[3] = syscall_screen_width;
     syscall[4] = syscall_screen_height;
     syscall[5] = syscall_time;
+    syscall[6] = syscall_cpu_vendor;
+    syscall[7] = syscall_cpu_model;
 }
 
 int syscallDispatcher(uint64_t rax, uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rcx, uint64_t r8, uint64_t r9)
