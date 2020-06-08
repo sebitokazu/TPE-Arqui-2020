@@ -23,6 +23,7 @@ EXTERN exceptionDispatcher
 
 EXTERN syscallDispatcher
 
+
 SECTION .text
 
 %macro pushState 0
@@ -64,6 +65,7 @@ SECTION .text
 	pushState
 
 	mov rdi, %1 ; pasaje de parametro
+	mov rsi,rsp
 	call irqDispatcher
 
 	; signal pic EOI (End of Interrupt)
@@ -82,8 +84,13 @@ SECTION .text
 	pushState
 
 	mov rdi, %1
+	mov rsi,rsp
+	;add rsi, 15*8 ;me muevo la cantidad de registros que pusheo, asi apunto al IP de la inst. que genero la excepcion
 	call exceptionDispatcher
-
+	;mov QWORD[rsp+15*8],SampleCodeModuleAddress
+	;add rsi,18*8
+	;and rsp,rbp
+	;mov rsp,rax
 	popState
 	pop rax
 	iretq
@@ -92,6 +99,7 @@ SECTION .text
 %macro syscallHandler 1
 	pushState
 
+	push r9
 	mov r9, r8
 	mov r8, rcx
 	mov rcx,rdx
@@ -100,7 +108,8 @@ SECTION .text
 	mov rdi,rax
 	
 	call syscallDispatcher
-
+	
+	pop r9
 	popState
 	iretq
 %endmacro
@@ -175,8 +184,6 @@ haltcpu:
 	cli
 	hlt
 	ret
-
-
 
 SECTION .bss
 	aux resq 1

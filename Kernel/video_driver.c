@@ -1,74 +1,107 @@
-#include <video_driver.h>
-#include <font.h>
+#include "include/video_driver.h"
+#include "include/font.h"
+#include "include/programs.h"
+#include "include/lib.h"
 
-static struct vbe_mode_info_structure* screen_info = 0x5C00;
+#define WIDTH 1024
+#define HEIGHT 768
 
-static uint8_t red = 0xFF, blue = 0xFF, green = 0xFF;
+static int backspace();
+static void printColorRect(int width, int height, int x, int y, int rgb);
+static int printChar(int x, int y, char c);
+static void printPixel(char *pos);
+static void printColorPixel(char *pos, uint32_t rgb);
+
+static struct vbe_mode_info_structure *screen_info = (struct vbe_mode_info_structure *)0x5C00;
+
+//escala de los char (sin usar)
 static int scale = 1;
 
-const int WIDTH = 1024;
-const int HEIGHT = 768;
-int screenSize[2] = {1024, 768};
 
-static int currentColor = 0xFFFFFF;
-static int current_x, current_y;
+int screenSize[2] = {WIDTH, HEIGHT};
 
-//HEIGHT / (CHAR_HEIGHT+SPACING) = 64
-static int cursorLastPosInRow[64] = {0};
+static int currentColor = WHITE;
 
-static void backspace();
-int printCharLoc(int x, int y, char c);
+//se guardan las ultimas posiciones x e y, por si el kernel tiene que imprimir en la pantalla actual (Ej. excepcion)
+static int current_x=0, current_y=0;
 
+static struct program *current_program = 0;
 
-void initVideo()
+/*
+ * Devuelve el tamaño de un char en pantalla y el espaciado entre lineas
+ */
+void getGraphicsInfo(int *ch_height, int *ch_width, int *spacing)
 {
-    current_x = 0;
-    current_y = 0;
-
-    ///printCursorPosition();
+    *ch_height = CHAR_HEIGHT;
+    *ch_width = CHAR_WIDTH;
+    *spacing = SPACING;
 }
 
-static char* getPixelDataByPosition(int x,int y){
-    return screen_info->framebuffer + y * screen_info->pitch + (x * (screen_info->bpp / 8));
-    //return screen_info->framebuffer + (x + y * screen_info->width) * 3;
-}
-
-int* getScreenSize(){
+int *getScreenSize()
+{
     return screenSize;
 }
 
-void setColor(uint8_t r, uint8_t g, uint8_t b){
-    red = r;
-    green = g;
-    blue = b;
+char* getPixelDataByPosition(int x,int y){
+    return screen_info->framebuffer + (x + y * screen_info->width) * 3;
 }
 
-int printPixel(char* pos){
-    //char* pos = getPixelDataByPosition(x,y);
+static void printPixel(char* pos){
     pos[0] = currentColor & (int)0xFF; //azul
     pos[1] = (currentColor >> 8) & (int)0xFF; //verde
     pos[2] = currentColor>>16; //rojo
 }
 
-int printColorPixel(char* pos, uint32_t rgb){
+static void printColorPixel(char* pos, uint32_t rgb){
     pos[0] = rgb & (uint32_t)0xFF;  //azul
     pos[1] = ( rgb >> 8 ) & (uint32_t) 0xFF; //verde
     pos[2] = rgb>>16;   //rojo
 }
 
-int printChar(char c){
-    printCharLoc(current_x, current_y, c);
+/*
+ * Dibuja un cuadrado de width*height en (x,y) del color actual en caso de que sea en los limites de la pantalla actual
+ */
+int printRect(int width, int height, int x, int y)
+{
+    current_program = getCurrentProgram();
+    if (x >= current_program->Xf || y >= current_program->Yf)
+    {
+        return -1;
+    }
+    char *pos = getPixelDataByPosition(x, y);
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            printPixel(pos + j * 3);
+        }
+        pos += screen_info->pitch;
+    }
+
+    return 0;
 }
 
-int printCharLoc(int x, int y, char c){
+static void printColorRect(int width, int height, int x, int y, int rgb)
+{
+    char *pos = getPixelDataByPosition(x, y);
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            printColorPixel(pos + j * 3, rgb);
+        }
+        pos += screen_info->pitch;
+    }
+}
+
+static int printChar(int x, int y, char c){
     if (c == '\n')
     {
-        //clearCursorPosition();
-        printNewLine();
+         printNewLine();
     }
     else if (c == '\b')
     {
-        backspace();
+        return backspace();
     }
     else
     {
@@ -78,112 +111,96 @@ int printCharLoc(int x, int y, char c){
             {
                 if (font8x8_basic[c][i] & (1 << j))
                 {
+                    //Si es un 1, pintal el pixel de blanco
                     printRect(scale, scale, (x + j) * scale, (y + i) * scale);
                 }else{
+                    //Si es 0, pinta el pixel de negro
                     printColorRect(scale, scale, (x + j) * scale, (y + i) * scale,BLACK);
                 }
             }
         }
         current_x += CHAR_WIDTH;
-        if (current_x >= WIDTH)
+        if (current_x + CHAR_WIDTH >= current_program->Xf){
             printNewLine();
+        }
     }
-   // printCursorPosition();
 }
 
-int printString(char* str,int cant){
+/*
+ *  Funcion para que el kernel pueda imprimir en la pantalla del programa actual
+ */
+int printStringKernel(const char* str, int cant){
     int i = cant;
     while (i > 0 && *str != '\0')
     {
-        printCharLoc(current_x, current_y, *str++);
+        if (printChar(current_x, current_y, *str++) == -1)
+        {
+            return -1;
+        }
         i--;
     }
     return cant - i;
 }
 
-void set_cursor_position(int x, int y){
-    current_x = x;
-    current_y = y;
+int printString(char* str,int cant,int x, int y){
+    int i = cant;
+    current_program = getCurrentProgram();
+    current_x = (x*CHAR_WIDTH + current_program->Xi);
+    current_y = (y*(CHAR_HEIGHT+SPACING) + current_program->Yi);
+    while (i > 0 && *str != '\0')
+    {
+        if(printChar(current_x, current_y, *str++)==-1){
+            return -1;
+        }
+        i--;
+    }
+    return cant - i;
 }
 
 void printNewLine(){
-    cursorLastPosInRow[current_y % (CHAR_WIDTH + SPACING)] = current_x;
-    current_x = 0;
-    current_y += (CHAR_WIDTH + SPACING) * scale;
+    current_x = current_program->Xi;
+    current_y += (CHAR_HEIGHT + SPACING);
+    if (current_y + CHAR_HEIGHT >= (current_program->Yf) - (CHAR_HEIGHT + SPACING))
+    {
+        scrollUp();
+        current_y -= (CHAR_HEIGHT + SPACING);
+    }
 }
-
+/*
+ * Limpia la pantalla del programa actual
+ */
 void clearScreen()
 {
-    char *pos = screen_info->framebuffer;
-    for (int i = 0; i < WIDTH * HEIGHT; i++)
+    current_program = getCurrentProgram();
+    int width = current_program->Xf - current_program->Xi;
+    int height = current_program->Yf - current_program->Yi;
+    printColorRect(width, height, current_program->Xi, current_program->Yi,BLACK);
+    current_x = current_program->Xi;
+    current_y = current_program->Yi;
+}
+/*
+ * Scrollea hacia arriba la pantalla actual mediante un copiado de bytes en frame_buffer
+ */
+void scrollUp(){
+    char *pos;
+    char *next_pos;
+    for (int i = 0; i < HEIGHT; i++)
     {
-        printColorPixel(pos + i * 3, 0);
+        
+        pos = getPixelDataByPosition(current_program->Xi, current_program->Yi + i);
+        next_pos = getPixelDataByPosition(current_program->Xi, current_program->Yi + (CHAR_HEIGHT + SPACING) + i);
+        memcpy(pos, next_pos, (screen_info->bpp) / 8 * (current_program->Xf - current_program->Xi));
     }
-    current_x = 0;
-    current_y = 0;
-    //printCursorPosition();
 }
 
-void backspace(){
-    //clearCursorPosition();
-    if(current_x>0){
+static int backspace(){
+    if(current_x >current_program->Xi){
         current_x -= CHAR_WIDTH;
+        printChar(current_x, current_y, ' ');
+        return 0;
     }
     else
     {
-        if(current_y!=0){
-            current_y -= (CHAR_WIDTH + SPACING);
-            current_x = cursorLastPosInRow[current_y % (CHAR_WIDTH + SPACING)];
-        }
-    }
-}
-
-void printCursorPosition()
-{
-
-    for (int i = 0; i < 8; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            printColorRect(scale, scale, (current_x + j) * scale, (current_y + i) * scale, WHITE);
-        }
-    }
-}
-
-void clearCursorPosition(){
-    for (int i = 0; i < 8; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            printColorRect(scale, scale, (current_x + j) * scale, (current_y + i) * scale,BLACK);
-        }
-    }
-}
-
-int printColorRect(int width, int height, int x, int y, int rgb){
-    char *pos = getPixelDataByPosition(x, y);
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = 0; j < width; j++)
-        {
-            printColorPixel(pos + j * 3,rgb);
-        }
-        pos += screen_info->pitch;
-    }
-}
-
-int printRect(int width, int height, int x, int y)
-{
-    if(x >= WIDTH || y >= HEIGHT)
         return -1;
-    char *pos = getPixelDataByPosition(x, y);
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = 0; j < width;j++){
-            printPixel(pos + j*3);
-        }
-        pos += screen_info->pitch;
     }
-
-    return 0;
 }

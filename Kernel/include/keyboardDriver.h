@@ -1,9 +1,11 @@
 #ifndef _KEYBOARD_DRIVER_H_
 #define _KEYBOARD_DRIVER_H_
 
-void keyboard_handler();
-char key_pooling();
+#include <stdint.h>
+
+void keyboard_handler(uint64_t *rsp);
 int isBufferEmpty();
 char getBufferChar();
+int getSpecialKeysStatus();
 
 #endif

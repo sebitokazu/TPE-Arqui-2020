@@ -1,5 +1,7 @@
 #include "include/stdio.h"
 #include "include/libasm.h"
+#include "include/strings.h"
+
 
 int getchar(void){
     char c;
@@ -7,34 +9,26 @@ int getchar(void){
     return c;
 }
 
-int scanf(char* fmt, char* buff){
-    char c = 0;
-    int cant = 0;
-    c = getchar();
-    while (c != '\n')
-    {
-        buff[cant++] = c;
-        putchar(c);
-        c = getchar();
-    }
-    buff[cant] = '\0';
-    return cant;
+int putchar(char c, int x_cursor, int y_cursor)
+{
+    return write(1, &c, 1, x_cursor,y_cursor);
 }
 
-int putchar(char c){
-    return write(1, &c, 1);
-}
-
-int puts(char* str){
+int puts(const char *str, int x_cursor, int y_cursor)
+{
     int cant = strlen(str);
-    return write(1, str, cant);
+    return write(1, str, cant,x_cursor, y_cursor);
 }
 
-int strlen(char* str){
-    int c = 0;
-    while(*str!=0){
-        c++;
-        str++;
-    }
-    return c;
+int putsNum(int num, int x_cursor, int y_cursor)
+{
+    char *buf = 0;
+    numtostring(buf, num);
+    return puts(buf,x_cursor,y_cursor);
+}
+
+int getCtrlState(){
+    int status = keyboard_status();
+    status = status >> 3;
+    return status;
 }

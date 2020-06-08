@@ -1,10 +1,12 @@
 GLOBAL write
 GLOBAL read
 GLOBAL time
+GLOBAL invalidopcode
+GLOBAL keyboard_status
+GLOBAL inforeg
 
 section .text
 
-;int fwrite(int fd, char* buf, unsigned int count)
 write:
 	push rbp
 	mov rbp, rsp
@@ -16,7 +18,6 @@ write:
 	pop rbp
 	ret
 
-;int read(int fd, char* buf,unsigned int count)
 read:
 	push rbp
 	mov rbp,rsp
@@ -33,6 +34,35 @@ time:
 	mov rbp,rsp
 
 	mov rax,5
+	int 80h
+
+	leave
+	ret
+
+invalidopcode:
+	push rbp
+	mov rbp,rsp
+
+	UD2 ;opcode 0F 0B
+
+	leave
+	ret
+
+keyboard_status:
+	push rbp
+	mov rbp,rsp
+
+	mov rax,9
+	int 80h
+
+	leave
+	ret
+
+inforeg:
+	push rbp
+	mov rbp,rsp
+
+	mov rax,10
 	int 80h
 
 	leave

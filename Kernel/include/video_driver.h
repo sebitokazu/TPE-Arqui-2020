@@ -3,15 +3,14 @@
 
 #include <stdint.h>
 
-int printChar(char c);
-int printString(char *str, int cant);
+int printString(char *str, int cant,int x,int y);
+int printStringKernel(const char *str, int cant);
 int printRect(int width, int height, int x, int y);
-void setColor(uint8_t r, uint8_t g, uint8_t b);
 void clearScreen();
-void initVideo();
 void printNewLine();
-void set_cursor_position(int x, int y);
 int *getScreenSize();
+void scrollUp();
+void getGraphicsInfo(int *ch_height, int *ch_width, int *spacing);
 
 struct vbe_mode_info_structure
 {

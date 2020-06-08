@@ -1,11 +1,32 @@
 #ifndef _FONT_H_
 #define _FONT_H_
 
+#define WHITE 0xFFFFFF
+#define BLACK 0
 const int CHAR_WIDTH = 8;
 const int CHAR_HEIGHT = 8;
-const int SPACING = 4;
-const int WHITE = 0xFFFFFF;
-const int BLACK = 0;
+const int SPACING = 8;
+
+/** 
+ * 8x8 monochrome bitmap fonts for rendering
+ * Author: Daniel Hepper <daniel@hepper.net>
+ * 
+ * License: Public Domain
+ * 
+ * Based on:
+ * // Summary: font8x8.h
+ * // 8x8 monochrome bitmap fonts for rendering
+ * //
+ * // Author:
+ * //     Marcel Sondaar
+ * //     International Business Machines (public domain VGA fonts)
+ * //
+ * // License:
+ * //     Public Domain
+ * 
+ * Fetched from: http://dimensionalrift.homelinux.net/combuster/mos3/?p=viewsource&file=/modules/gfx/font8_8.asm
+ *              :https://github.com/amperka/TroykaLedMatrix/blob/master/font8x8/font8x8_basic.h
+ **/
 
 const char font8x8_basic[128][8] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // U+0000 (nul)

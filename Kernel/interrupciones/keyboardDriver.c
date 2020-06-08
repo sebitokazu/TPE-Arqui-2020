@@ -1,6 +1,12 @@
-#include <keyboardDriver.h>
-#include <video_driver.h>
+#include "../include/keyboardDriver.h"
+#include "../include/video_driver.h"
+#include "../include/registers.h"
+#include "../include/keyboard.h"
 
+#define BUFFER_LENGTH 150
+
+static void write_key(uint64_t *rsp);
+static int isLetter(int code);
 
 const char scancodes[58][2]=
         {    
@@ -9,20 +15,24 @@ const char scancodes[58][2]=
             /*CTRL*/{0,0},{'a','A'},{'s','S'},{'d','D'},{'f','F'},{'g','G'},{'h','H'},{'j','J'},{'k','K'},{'l','L'},{';',';'},{'\'','\"'},{'`','~'},/*LSHIFT*/{0,0},{'\\','|'},
             {'z','Z'} ,{'x','X'},{'c','C'},{'v','V'},{'b','B'},{'n','N'},{'m','M'},{',','<'},{'.','>'},{'/','?'},/*RSHIFT*/{0,0},{0,0},/*LALT*/{0,0},{' ',' '}
         };
-#define BUFFER_LENGTH 150
+
+
 static char buffer[BUFFER_LENGTH];
 static unsigned int buffer_pos = 0;
 static unsigned int read_pos = 0;
 
-static int capsLock = 0, leftShift = 0, rightShift = 0;
+static int capsLock = 0, leftShift = 0, rightShift = 0, ctrl = 0;
 
-void keyboard_handler(){
-    //int capsLock = 0;
-    //int keypressed = getKey();
-    write_key();
+void keyboard_handler(uint64_t *rsp){
+    write_key(rsp);
 }
-
-void write_key(){
+/*
+ *  Guarda en buffer el ASCII de la tecla presionada
+ *  De ser tecla espacial, modifica el estado de los booleanos
+ *  Si presiona ESC, se ejecuta la funcion de snap de registros
+ */
+static void write_key(uint64_t *rsp)
+{
     char value;
     int keypressed = getKey();
     switch (keypressed)
@@ -41,6 +51,15 @@ void write_key(){
         break;
     case 0xB6:
         rightShift = 0;
+        break;
+    case 0x1D:
+        ctrl = 1;
+        break;
+    case 0x9D:
+        ctrl = 0;
+        break;
+    case 0x81:
+        snap_register(rsp,&(rsp[15]));
         break;
     default:
         break;
@@ -66,7 +85,6 @@ void write_key(){
         buffer[buffer_pos++] = value;
         if(buffer_pos == BUFFER_LENGTH)
             buffer_pos = 0;
-        //printChar(value);
     }
 }
 
@@ -76,22 +94,29 @@ char getBufferChar(){
         read_pos = 0;
     return c;
 }
-
+/*
+ *  Verifica que haya tecla en el buffer, esto es, que la posicion del buffer sea mayor a la posicion de ultima lectura
+ */
 int isBufferEmpty(){
     return read_pos == buffer_pos;
 }
-
-char key_pooling(){
-    while (1)
-    {
-        if (hasKey())
-        {
-            write_key();
-        }
-    }
+/*
+	    |7-4|3|2|1|0| Keyboard Special Key Status
+	      |  | | | `   Caps-Lock indicator  (0=off, 1=on)
+          |  | | ` -- Right-Shift indicator  (0=off, 1=on)
+	      |  | `---- Left-Shift indicator  (0=off, 1=on)
+	      |  `----- Right-Ctrl indicator (0=off, 1=on)
+	      `------- undefined
+ */
+int getSpecialKeysStatus(){
+    uint8_t status = ctrl;
+    status = (status << 1) | leftShift;
+    status = (status << 1) | rightShift;
+    status = (status << 1) | capsLock;
+    return status;
 }
 
-int isLetter(int code){
+static int isLetter(int code){
     if((code>=0x10 && code <= 0x19)|| (code >=0x1E && code <= 0x26) || (code >= 0x2C && code <= 0x32))
         return 1;
     else

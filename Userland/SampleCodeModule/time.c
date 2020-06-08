@@ -1,10 +1,22 @@
 #include "include/time.h"
 #include "include/libasm.h"
 
+const char *weekdayShort[7] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 
-date_tm *getCurrentTime()
+/*
+    date[0]->seg
+    date[1]->min
+    date[2]->hor
+    date[3]->dia de la semana
+    date[4]->dia del mes
+    date[5]->mes
+    date[6]->año
+*/
+
+static int date[7];
+
+int *getCurrentTime()
 {
-    date_tm *date = 0;
     int ret = time(date);
     if (ret == -1)
     {
@@ -12,7 +24,12 @@ date_tm *getCurrentTime()
     }
     else
     {
-        date->tm[3]--; //corrijo para que Weekday sea 0-6 donde SUN = 0
+        if(date[2]==0)
+            date[0] = 24;
         return date;
     }
+}
+
+char* getDay(int i){
+    return weekdayShort[i-1];
 }

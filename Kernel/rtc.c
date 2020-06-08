@@ -1,4 +1,4 @@
-#include <RTC.h>
+#include "include/RTC.h"
 
 extern int cpuHours();
 extern int cpuMins();
@@ -8,7 +8,10 @@ extern int cpuDay();
 extern int cpuMonth();
 extern int cpuYear();
 
-int getRTCHours(){
+static int bcdToDec(int bcd);
+
+int getRTCHours()
+{
     int hoursBCD = cpuHours();
     return bcdToDec(hoursBCD);
 }
@@ -40,6 +43,9 @@ int getRTCYear(){
     return bcdToDec(yearBCD);
 }
 
-int bcdToDec(int bcd){
+/*
+ * Convierte de formato BCD a int
+ */
+static int bcdToDec(int bcd){
     return  ((bcd & 0xF0) >> 4)*10 + (bcd & 0x0F);
 }

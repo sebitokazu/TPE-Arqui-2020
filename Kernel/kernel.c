@@ -4,9 +4,7 @@
 #include <moduleLoader.h>
 #include <naiveConsole.h>
 #include <idtLoader.h>
-#include <video_driver.h>
 #include <syscallDispatcher.h>
-#include <libasm.h>
 
 
 extern uint8_t text;
@@ -78,7 +76,6 @@ void * initializeKernelBinary()
 	ncPrint("  bss: 0x");
 	ncPrintHex((uint64_t)&bss);
 	ncNewline();
-
 	ncPrint("[Done]");
 	ncNewline();
 	ncNewline();
@@ -108,7 +105,6 @@ int main()
 	ncPrint("[Finished]");
 	*/
 
-	initVideo();
 	load_idt();
 	setup_syscalls();
 	((EntryPoint)sampleCodeModuleAddress)();
