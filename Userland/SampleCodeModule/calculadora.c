@@ -35,7 +35,7 @@ static int height;
 static int is_running = 1;
 
 const char msg[205] = "Bienvenido a la calculadora\nPresione = para evaluar una expresion\n\
-Presione 'd' para borrar la linea actual\n\Presione 'c' para limpiar la pantalla";
+Presione 'd' para borrar la linea actual\nPresione 'c' para limpiar la pantalla";
 
 int runCalculadora(int _width, int _height)
 {
@@ -54,7 +54,7 @@ int runCalculadora(int _width, int _height)
     }
 
     int cant = scanfIO(input), error = 1;
-    while (error != 0 && cant > 0)
+    while (cant!=-1)
     {
         //textoInicial();
 
@@ -67,6 +67,7 @@ int runCalculadora(int _width, int _height)
         }
         cant = scanfIO(input);
     }
+    return 0;
 }
 
 void imprimirResultado(char *resultado)
@@ -544,11 +545,10 @@ int getPrecedencia(char c)
 int scanfIO(char *buff)
 {
     char c = 0;
-    int cant = 0, status = 0;
+    int cant = 0;
     c = getchar();
     while (c != '=')
     {
-        //getState(status);
         int aux = isValid(c);
         switch (aux)
         {
@@ -565,8 +565,10 @@ int scanfIO(char *buff)
             cant = 0;
             break;
         case 2:
-            if (status % 2)
-                return 0; //cambiar pantalla
+            if (getCtrlState() == 1){
+                is_running = 0;
+                return CHANGEWINDOW;
+            }
             break;
         case 3:
             buff[cant++] = c;
