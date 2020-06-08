@@ -1,10 +1,10 @@
 #include "include/calculadora.h"
 #include "include/stdio.h"
+#include "include/strings.h";
 
 void imprimirResultado(char *resultado);
 int charToInt(char c);
 int calcularExpresion(char *input);
-//void sumar(int* enteros, int* decimales, int pos);
 int addNum(char *input, int pos, int *enteros, int *decimales, int posNum);
 int potDiez(int num);
 int getInversePrefija(char *input, int cant);
@@ -20,10 +20,7 @@ int addNumToString(int n, int i, char *numFinal);
 int getDecena(int n);
 char intToChar(int n);
 int addDecimalesToString(int n, int i, char *numFinal);
-void makeOperation(int *enteros, int *decimales, int pos, char c);
-//void multiplicar(int* enteros, int* decimales, int pos);
-//void dividir(int* enteros, int* decimales, int pos);
-//void restar(int* enteros, int* decimales, int pos);
+int makeOperation(int *enteros, int *decimales, int pos, char c);
 
 static char input[50];
 
@@ -53,17 +50,24 @@ int runCalculadora(int _width, int _height)
         is_running = 1;
     }
 
+<<<<<<< HEAD
     int cant = scanfIO(input), error = 1;
     while (cant!=-1)
+=======
+    int cant = scanfIO(input), seguir = 1;
+    while (seguir && cant > 0)
+>>>>>>> 3ad666e040e53c5c0637c039032a80e15c74fa28
     {
         //textoInicial();
 
         if (cant > 0)
         {
-            error = getInversePrefija(input, cant);
-            error = calcularExpresion(input);
-            if (error)
-                imprimirResultado(input);
+            seguir = getInversePrefija(input, cant);
+            if(seguir){
+                seguir = calcularExpresion(input);
+                if (seguir)
+                    imprimirResultado(input);
+            }            
         }
         cant = scanfIO(input);
     }
@@ -72,6 +76,8 @@ int runCalculadora(int _width, int _height)
 
 void imprimirResultado(char *resultado)
 {
+    puts(" = ", currentX, currentY);
+    currentX += 3;
     puts(resultado,currentX,currentY);
     currentX = 0;
     currentY++;
@@ -89,27 +95,41 @@ int calcularExpresion(char *input)
     int enteros[40];
     int decimales[40];
     int posNum = 0;
+    
     for (int i = 0; i < strlen(input); i++)
     {
         if (isNumber(input[i]))
         {
             i = addNum(input, i, enteros, decimales, posNum++);
-            if (i == 0)
+            if (i == 0)//Solamente si se ejecuta terminar
             {
                 return -1;
             }
+            
         }
         if (input[i] != '&')
         {
-            makeOperation(enteros, decimales, --posNum, input[0]);
+            int finish = makeOperation(enteros, decimales, --posNum, input[i]);
+            if(finish ==0)
+                return -1;
         }
     }
+    
     //aca posNum deberia ser 0
-    posNum = addNumToString(enteros[0], 0, input);
+    posNum=uintToBase(enteros[0], input, 10);
     input[posNum++] = '.';
-    posNum = addDecimalesToString(decimales[0], posNum, input);
-    //Aca posNum deberia ser = len(enteros[0])+len(decimales[0])+1
-    input[posNum] = '/0';
+    char auxi[5];
+    int j=0,cant=uintToBase(decimales[0], auxi, 10);
+    j=cant;
+    while(j<4){
+        input[posNum++]='0';
+        j++;
+    }
+    j=0;
+    while(j<cant){
+        input[posNum++]=auxi[j++];
+    }
+    input[posNum] = '\0';
     return 1;
 }
 
@@ -152,50 +172,11 @@ char intToChar(int n)
     return '0' + n;
 }
 
-/*
-//Devuelve en pos-1 la suma de pos y pos-1(para decimales y enteros)
-void sumar(int* enteros, int* decimales, int pos){
-    enteros[pos-1] += sumarDecimales(decimales, pos) + enteros[pos];
-}
-
-//Devuelve 1 si hay que sumar a los enteros, 0 sino;
-int sumarDecimales(int* decimales, int pos){
-    int res=0, suma=0;
-    float n1=decimales[pos-1]/10000, n2=decimales[pos]/10000;
-    n1+=n2;
-    suma=(n1*10000);
-    if(suma>10000){
-        res=1;
-        suma-=10000;
-    }
-    decimales[pos-1]=suma;
-    return res;
-}
-
-//devuelve la resta en pos-1 de enteros y decimales 
-void restar(int* enteros, int* decimales, int pos){
-    enteros[pos-1] -= (enteros[pos] + restarDecimales(decimales, pos));
-}
-
-//devuelve 1 si hay que restar uno a los enteros
-int restarDecimales(int *decimales, int pos){
-    int res=0, resta=0;
-    float n1=decimales[pos-1]/10000, n2=decimales[pos]/10000;
-    n1-=n2;
-    if(n1<n2){
-        n1+=1;
-        res=1;
-    }
-    decimales[pos-1]=(n1*10000);
-    return res;
-}
-
-
-*/
-
-void makeOperation(int *enteros, int *decimales, int pos, char c)
-{
-    float n1 = (enteros[pos - 1] + (decimales[pos - 1] / 10000)), n2 = (enteros[pos] + (decimales[pos] / 10000));
+//Hace la operacion correspondiente
+int makeOperation(int *enteros, int *decimales, int pos, char c)
+{  
+    double n1 = (enteros[pos - 1] + (decimales[pos - 1] / 10000.0)), n2 = (enteros[pos] + (decimales[pos] / 10000.0));
+    
     switch (c)
     {
     case '+':
@@ -208,113 +189,48 @@ void makeOperation(int *enteros, int *decimales, int pos, char c)
         n2 *= n1;
         break;
     case '%':
-        if (n1 == 0.0)
-            //DIVIDIRPORCERO
-            n2 /= n1;
+        if (n1 == 0.0){
+            puts("NO SE PUEDE DIVIDIR POR CERO", currentX, currentY++);
+            return terminarExpresion();
+        }
+        n2 /= n1;
         break;
     }
-
-    n2 -= n1;
-    int entero = n2;
+    int entero = (int)n2;
     enteros[pos - 1] = entero;
     n2 -= (entero * 1.0);
     n2 *= 10000.0;
-    entero = n2;
+    entero = (int)n2;
     decimales[pos - 1] = entero;
+    return 1;
 }
-
-/*
-//Devuelve la resta en pos-1 de enteros y decimales
-void restar(int* enteros, int* decimales, int pos){
-    float n1= (enteros[pos-1]+(decimales[pos-1]/10000)), n2=(enteros[pos]+(decimales[pos]/10000));
-    n2-=n1;
-    int entero = n2;
-    enteros[pos-1]=entero;
-    n2-=(entero*1.0);
-    n2*=10000.0;
-    entero=n2;
-    decimales[pos-1]=entero;
-}
-
-//Devuelve la suma en pos-1 de enteros y decimales
-void sumar(int* enteros, int* decimales, int pos){
-    float n1= (enteros[pos-1]+(decimales[pos-1]/10000)), n2=(enteros[pos]+(decimales[pos]/10000));
-    n2+=n1;
-    int entero = n2;
-    enteros[pos-1]=entero;
-    n2-=(entero*1.0);
-    n2*=10000.0;
-    entero=n2;
-    decimales[pos-1]=entero;
-}
-
-//devuelve la division en pos-1 de enteros y decimales
-void dividir(int* enteros, int* decimales, int pos){
-    float n1= (enteros[pos-1]+(decimales[pos-1]/10000)), n2=(enteros[pos]+(decimales[pos]/10000));
-    if(n1==0)
-        return;//DIVPORCEROOOOOOOOOOOOOOOOOOOOOO
-    n2=n2/n1;
-    int entero = n2;
-    enteros[pos-1]=entero;
-    n2-=(entero*1.0);
-    n2*=10000.0;
-    entero=n2;
-    decimales[pos-1]=entero;
-}
-
-//devuelve la multiplicacion en pos-1 de enteros y decimales
-void multiplicar(int* enteros, int* decimales, int pos){
-    float n1= (enteros[pos-1]+(decimales[pos-1]/10000)), n2=(enteros[pos]+(decimales[pos]/10000));
-    n2*=n1;
-    int entero = n2;
-    enteros[pos-1]=entero;
-    n2-=(entero*1.0);
-    n2*=10000.0;
-    entero=n2;
-    decimales[pos-1]=entero;
-}
-
-*/
 
 //Agrega el numero a la pila. Devuelve la pos + la longitud del numero. Si devuelve 0, entonces hay que terminar.
 int addNum(char *input, int pos, int *enteros, int *decimales, int posNum)
 {
-    //puts(input);
-    //putchar('\n');
-    int aux = pos + 1, entero = input[pos], decimal = 0, potencia = 1;
+    int aux = pos + 1, entero = charToInt(input[pos]), decimal = 0, potencia = 1;
     while (isNumber(input[aux]))
     {
-        entero += charToInt(input[aux]) * potDiez(potencia++);
+        entero += (charToInt(input[aux]) * potDiez(potencia++));
         aux++;
     }
     if (input[aux] == '.')
     {
-        /*int borrar = entero*potDiez(4-(aux-pos));
-        putchar('\n');
-        putchar(intToChar(borrar/1000));
-        borrar-=((borrar/1000)*1000);
-        putchar(intToChar(borrar/100));
-        borrar-=((borrar/100)*100);
-        putchar(intToChar(borrar/10));
-        borrar-=((borrar/10)*10);
-        putchar(intToChar(borrar));*/
-
-        decimales[posNum] = entero * potDiez(4 - (aux - pos));
-        entero = 0;
+        if(entero>=10000)
+            return terminarExpresion();
+        decimal = entero * potDiez(4 - (aux - pos));
         aux++;
         potencia = 1;
-        entero = input[aux++];
+        entero = charToInt(input[aux++]);
         while (isNumber(input[aux]))
-        {
-            entero += charToInt(input[aux]) * potDiez(potencia++);
-            aux++;
-        }
-        enteros[posNum] = entero;
+            entero += (charToInt(input[aux++]) * potDiez(potencia++));
         if (input[aux] == '.')
         {
             return terminarExpresion();
         }
     }
+    enteros[posNum] = entero;
+    decimales[posNum] = decimal;
     return aux;
 }
 
@@ -364,6 +280,7 @@ int getInversePrefija(char *input, int cant)
     {
         buffer[posBuffer++] = input[0];
     }
+    
     for (int i = 1; i < cant - 1; i++)
     {
         char aux = input[i];
@@ -371,17 +288,13 @@ int getInversePrefija(char *input, int cant)
         {
         case ')':
             if (!isNumber(input[i + 1]) && input[i + 1] != ')')
-            {
                 return terminarExpresion();
-            }
             cantParentesis++;
             pila[posPila++] = aux;
             break;
         case '(':
-            if (!cantParentesis || !isOperation(input[i + 1]))
-            {
+            if (cantParentesis==0 || (!isOperation(input[i + 1]) && input[i+1]!='('))
                 return terminarExpresion();
-            }
             cantParentesis--;
             int diferencia = emptyTillParenthesis(buffer, posBuffer, pila, posPila);
             posBuffer += diferencia;
@@ -392,9 +305,10 @@ int getInversePrefija(char *input, int cant)
         case '+':
         case '-':
         case '%':
-        case 'x':;
-            if (!isNumber(input[i + 1]))
+        case 'x':
+            if (!isNumber(input[i + 1]) && input[i+1]!=')'){
                 return terminarExpresion();
+            }
             int cambio = 0;
             cambio = bufferOrPila(aux, pila, posPila, buffer, posBuffer);
             if (cambio > 0)
@@ -421,7 +335,6 @@ int getInversePrefija(char *input, int cant)
                 buffer[posBuffer++] = '&';
             printDot = 0;
             buffer[posBuffer++] = aux;
-            //break;
         }
     }
     if (printDot)
@@ -430,7 +343,7 @@ int getInversePrefija(char *input, int cant)
     if (ultimo == '(')
     {
         if (!cantParentesis)
-            return terminarExpresion();
+            return terminarExpresion();        
         int diferencia = emptyTillParenthesis(buffer, posBuffer, pila, posPila);
         posBuffer += diferencia;
         posPila -= diferencia;
@@ -444,6 +357,7 @@ int getInversePrefija(char *input, int cant)
 
     if (pila[0] != '\0')
     {
+        
         int cambio = emptyTillParenthesis(buffer, posBuffer, pila, posPila);
         posBuffer += cambio;
         if ((posPila - cambio) > 0)
@@ -451,18 +365,20 @@ int getInversePrefija(char *input, int cant)
     }
 
     buffer[++posBuffer] = '\0';
-
     for (int i = 0; i < posBuffer; i++)
     {
-        input[0] = buffer[0];
+        input[i] = buffer[i];
     }
+    input[posBuffer]='\0';  
     return 1;
 }
 
 //Devuelve 0
 int terminarExpresion()
 {
-    puts("TERMINO",currentX,currentY);
+    currentX=0;
+    currentY++;
+    puts("La expresion algebraica tiene un error",currentX,currentY);
     currentX = 0;
     currentY++;
     return 0;
@@ -503,7 +419,7 @@ int bufferOrPila(char c, char *pila, int posPila, char *buffer, int posBuffer)
 {
     if (posPila == 0)
     {
-        pila[posPila++] = c;
+        pila[posPila++] = c;                         
         return 0;
     }
     if (getPrecedencia(pila[posPila - 1]) > getPrecedencia(c))
@@ -513,6 +429,8 @@ int bufferOrPila(char c, char *pila, int posPila, char *buffer, int posBuffer)
         return 1 + bufferOrPila(c, pila, posPila, buffer, posBuffer);
     }
     pila[posPila++] = c;
+    pila[posPila]='\0';
+    
     return 0;
 }
 
@@ -553,9 +471,11 @@ int scanfIO(char *buff)
         switch (aux)
         {
         case 0: // backspace
-            buff[cant] = '\0';
-            if (cant > 0)
+            if (cant > 0){
+                buff[cant] = '\0';
+                putchar('\b',currentX--, currentY);
                 cant--;
+            }
             break;
         case 1: // borrar todo
             while (cant >= 0)
