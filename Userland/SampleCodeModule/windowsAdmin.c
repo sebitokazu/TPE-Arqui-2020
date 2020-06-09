@@ -20,9 +20,9 @@ void setupEnvironment(){
     graphics_info(&char_width,&char_height,&spacing);
     //este es el programa admin de pantallas, solo corre para dibujar la linea divisoria de pantalla
     create_program(0, 0, screen_width, 0, screen_heigth, &start);
-    //defino el programa de la shell y le envio su dir de arranque
-    create_program(programs[0], 0, screen_width / 2, 0, screen_heigth, &start);
     //defino el programa de la calculadora y le envio su dir de arranque
+    create_program(programs[0], 0, screen_width / 2 - SEPARATORWIDTH, 0, screen_heigth, &start);
+    //defino el programa de la shell y le envio su dir de arranque
     create_program(programs[1], screen_width / 2 + SEPARATORWIDTH, screen_width, 0, screen_heigth, &start);
     //para que el programa de arranque sea el admin de ventanas
     change_program(0);
@@ -47,14 +47,13 @@ void start(){
     while (1)
     {
         if(activeWindow == 0){
-            retcode = 0;
             change_program(programs[getActiveWindow()]);
-            runCalculadora((screen_width / 2) / char_width, screen_heigth / (char_height + spacing));
+            retcode = runCalculadora(((screen_width / 2) - SEPARATORWIDTH)/char_width, screen_heigth / (char_height + spacing));
         }
         else
         {
             change_program(programs[getActiveWindow()]);
-            retcode = runShell((screen_width / 2)/char_width, screen_heigth/(char_height+spacing));
+            retcode = runShell(((screen_width / 2))/char_width, screen_heigth/(char_height+spacing));
         }
         changeActiveWindows();
         change_program(programs[getActiveWindow()]);

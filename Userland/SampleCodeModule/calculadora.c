@@ -24,12 +24,13 @@ int addDecimalesToString(int n, int i, char *numFinal);
 int makeOperation(int *enteros, int *decimales, int pos, char c);
 static void newEntry();
 static void newLine();
+static void clear();
 
-static char input[50];
+static char input[64];
+static int buffer_pos = 0;
 
 static int currentX = 0;
 static int currentY = 0;
-static int cant = 0;
 
 static int width;
 static int height;
@@ -69,8 +70,9 @@ int runCalculadora(int _width, int _height)
                 if (seguir)
                     imprimirResultado(input);
             }
-            newEntry();
         }
+        if(currentX!=1)
+            newEntry();
         cant = scanfIO(input);
     }
     return 0;
@@ -78,9 +80,14 @@ int runCalculadora(int _width, int _height)
 
 void imprimirResultado(char *resultado)
 {
+    if(currentX + 3 >= width)
+        newLine();
     puts(" = ", currentX, currentY);
     currentX += 3;
-    puts(resultado,currentX,currentY);
+    currentX+=puts(resultado,currentX,currentY);
+    if(currentX>=width){
+        currentY++;
+    }
     newLine();
 }
 
@@ -271,8 +278,8 @@ int getInversePrefija(char *input, int cant)
         ultimo = input[cant - 1];
     }
 
-    char pila[30];
-    char buffer[50];
+    char pila[32];
+    char buffer[64];
     int cantParentesis = 0, posBuffer = 0, posPila = 0, printDot = 0;
 
     if (ultimo == '.' || ultimo == ')' || isOperation(ultimo))
@@ -477,19 +484,18 @@ int scanfIO(char *buff)
         switch (aux)
         {
         case 0: // backspace
-            if (cant > 0){
-                buff[cant] = '\0';
+            if (buffer_pos > 0){
+                buff[buffer_pos] = '\0';
                 putchar('\b',currentX--, currentY);
-                cant--;
+                buffer_pos--;
             }
             break;
-        case 1: // borrar todo
-            while (cant >= 0)
-            {
-                buff[cant--] = '\0';
+        case 1: // borrar linea
+            for (buffer_pos; buffer_pos > 0;buffer_pos--){
+                buff[buffer_pos] = '\0';
+                putchar('\b', currentX--, currentY);
             }
-            cant = 0;
-            break;
+                break;
         case 2:
             if (getCtrlState() == 1){
                 is_running = 0;
@@ -497,17 +503,23 @@ int scanfIO(char *buff)
             }
             break;
         case 3:
-            buff[cant++] = c;
-            putchar(c,currentX++,currentY);
+            if (currentX <width){
+                buff[buffer_pos++] = c;
+                putchar(c,currentX++,currentY);
+            }
             break;
+        case 4: //borrar todo
+            clear();
+            buffer_pos = 0;
+            return 0;
         default:
             break;
         }
         c = getchar();
     }
-    buff[cant] = '\0';
-    int copy_cant = cant;
-    cant = 0;
+    buff[buffer_pos] = '\0';
+    int copy_cant = buffer_pos;
+    buffer_pos = 0;
     return copy_cant;
 }
 
@@ -526,6 +538,8 @@ int isValid(char c)
         return 1;
     case 'q':
         return 2;
+    case 'c':
+        return 4;
     default:
         return 5;
     }
@@ -559,4 +573,11 @@ static void newLine()
         scroll();
         currentY = height - 1;
     }
+}
+
+static void clear()
+{
+    clear_screen();
+    currentX = 0;
+    currentY = 0;
 }
