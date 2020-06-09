@@ -29,6 +29,7 @@ static char input[50];
 
 static int currentX = 0;
 static int currentY = 0;
+static int cant = 0;
 
 static int width;
 static int height;
@@ -67,9 +68,9 @@ int runCalculadora(int _width, int _height)
                 seguir = calcularExpresion(input);
                 if (seguir)
                     imprimirResultado(input);
-            }            
+            }
+            newEntry();
         }
-        newEntry();
         cant = scanfIO(input);
     }
     return 0;
@@ -469,7 +470,6 @@ int getPrecedencia(char c)
 int scanfIO(char *buff)
 {
     char c = 0;
-    int cant = 0;
     c = getchar();
     while (c != '=')
     {
@@ -506,7 +506,9 @@ int scanfIO(char *buff)
         c = getchar();
     }
     buff[cant] = '\0';
-    return cant;
+    int copy_cant = cant;
+    cant = 0;
+    return copy_cant;
 }
 
 //Devuelve el numero correspondiente al dato ingresado
