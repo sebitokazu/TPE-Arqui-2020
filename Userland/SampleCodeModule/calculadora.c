@@ -130,13 +130,11 @@ int calcularExpresion(char *input)
     }
     char auxi[5];
     int j=0,cant=uintToBase(decimales[0], auxi, 10);
-    j=cant;
-    while(j<4){
+    while((cant+j)<4){
         input[posNum++]='0';
         j++;
     }
-    j=0;
-    while(j<cant){
+    while(j<4){
         input[posNum++]=auxi[j++];
     }
     input[posNum] = '\0';
@@ -263,6 +261,8 @@ int getInversePrefija(char *input, int cant)
     }
     else if (cant == 1)
     {
+        if(!isNumber(input[0]))
+            return terminarExpresion();
         ultimo = '\0';
     }
     else
