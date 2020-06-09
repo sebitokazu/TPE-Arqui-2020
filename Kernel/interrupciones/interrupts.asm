@@ -85,12 +85,9 @@ SECTION .text
 
 	mov rdi, %1
 	mov rsi,rsp
-	;add rsi, 15*8 ;me muevo la cantidad de registros que pusheo, asi apunto al IP de la inst. que genero la excepcion
+
 	call exceptionDispatcher
-	;mov QWORD[rsp+15*8],SampleCodeModuleAddress
-	;add rsi,18*8
-	;and rsp,rbp
-	;mov rsp,rax
+
 	popState
 	pop rax
 	iretq

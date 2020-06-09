@@ -1,6 +1,7 @@
 #include "include/calculadora.h"
 #include "include/stdio.h"
 #include "include/strings.h";
+#include "include/graphicslib.h"
 
 void imprimirResultado(char *resultado);
 int charToInt(char c);
@@ -21,6 +22,8 @@ int getDecena(int n);
 char intToChar(int n);
 int addDecimalesToString(int n, int i, char *numFinal);
 int makeOperation(int *enteros, int *decimales, int pos, char c);
+static void newEntry();
+static void newLine();
 
 static char input[50];
 
@@ -49,14 +52,13 @@ int runCalculadora(int _width, int _height)
     {
         is_running = 1;
     }
+    if (currentX == 0)
+    {
+        newEntry();
+    }
 
-<<<<<<< HEAD
-    int cant = scanfIO(input), error = 1;
-    while (cant!=-1)
-=======
     int cant = scanfIO(input), seguir = 1;
     while (seguir && cant > 0)
->>>>>>> 3ad666e040e53c5c0637c039032a80e15c74fa28
     {
         //textoInicial();
 
@@ -69,6 +71,7 @@ int runCalculadora(int _width, int _height)
                     imprimirResultado(input);
             }            
         }
+        newEntry();
         cant = scanfIO(input);
     }
     return 0;
@@ -79,8 +82,7 @@ void imprimirResultado(char *resultado)
     puts(" = ", currentX, currentY);
     currentX += 3;
     puts(resultado,currentX,currentY);
-    currentX = 0;
-    currentY++;
+    newLine();
 }
 
 //Convirte un char en un int
@@ -376,11 +378,9 @@ int getInversePrefija(char *input, int cant)
 //Devuelve 0
 int terminarExpresion()
 {
-    currentX=0;
-    currentY++;
-    puts("La expresion algebraica tiene un error",currentX,currentY);
-    currentX = 0;
-    currentY++;
+    newLine();
+    puts("La expresion algebraica tiene un error", currentX, currentY);
+    newLine();
     return 0;
 }
 
@@ -535,4 +535,20 @@ int isOperation(char c)
     if (c == '+' || c == '-' || c == 'x' || c == '%')
         return 1;
     return 0;
+}
+
+static void newEntry()
+{
+    putchar('#', currentX, currentY);
+    currentX++;
+}
+static void newLine()
+{
+    currentX = 0;
+    currentY++;
+    if (currentY >= height)
+    {
+        scroll();
+        currentY = height - 1;
+    }
 }
