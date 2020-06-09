@@ -51,10 +51,8 @@ int runCalculadora(int _width, int _height)
     }
 
     int cant = scanfIO(input), seguir = 1;
-    while (seguir && cant > 0)
+    while (cant >= 0)
     {
-        //textoInicial();
-
         if (cant > 0)
         {
             seguir = getInversePrefija(input, cant);
@@ -109,9 +107,18 @@ int calcularExpresion(char *input)
         }
     }
     
-    //aca posNum deberia ser 0
-    posNum=uintToBase(enteros[0], input, 10);
-    input[posNum++] = '.';
+    if(enteros[0]<0){
+        char auxiliar[11];
+        posNum=uintToBase(enteros[0]*(-1), auxiliar, 10);
+        auxiliar[posNum++] = '.';
+        input[0]='-';
+        for(int i=1; i<=posNum;i++)
+            input[i]=auxiliar[i-1];
+        posNum++;
+    }else{
+        posNum=uintToBase(enteros[0], input, 10);
+        input[posNum++] = '.';
+    }
     char auxi[5];
     int j=0,cant=uintToBase(decimales[0], auxi, 10);
     j=cant;
@@ -169,8 +176,7 @@ char intToChar(int n)
 //Hace la operacion correspondiente
 int makeOperation(int *enteros, int *decimales, int pos, char c)
 {  
-    double n1 = (enteros[pos - 1] + (decimales[pos - 1] / 10000.0)), n2 = (enteros[pos] + (decimales[pos] / 10000.0));
-    
+    double n1 = (enteros[pos - 1] + ((double)decimales[pos - 1] / 10000.0)), n2 = (enteros[pos] + ((double)decimales[pos] / 10000.0));
     switch (c)
     {
     case '+':
@@ -193,7 +199,7 @@ int makeOperation(int *enteros, int *decimales, int pos, char c)
     int entero = (int)n2;
     enteros[pos - 1] = entero;
     n2 -= (entero * 1.0);
-    n2 *= 10000.0;
+    n2 *= 10000;
     entero = (int)n2;
     decimales[pos - 1] = entero;
     return 1;
@@ -248,7 +254,7 @@ int getInversePrefija(char *input, int cant)
     }
     else if (cant == 1)
     {
-        ultimo = input[0];
+        ultimo = '\0';
     }
     else
     {
@@ -267,7 +273,7 @@ int getInversePrefija(char *input, int cant)
             return terminarExpresion();
     if (input[0] == ')')
     {
-        pila[posPila++] = input[0];
+        pila[posPila++] = ')';
         cantParentesis++;
     }
     else
@@ -336,7 +342,7 @@ int getInversePrefija(char *input, int cant)
     printDot = 0;
     if (ultimo == '(')
     {
-        if (!cantParentesis)
+        if (cantParentesis!=1)
             return terminarExpresion();        
         int diferencia = emptyTillParenthesis(buffer, posBuffer, pila, posPila);
         posBuffer += diferencia;
@@ -351,19 +357,18 @@ int getInversePrefija(char *input, int cant)
 
     if (pila[0] != '\0')
     {
-        
         int cambio = emptyTillParenthesis(buffer, posBuffer, pila, posPila);
         posBuffer += cambio;
         if ((posPila - cambio) > 0)
             return 0;
     }
 
-    buffer[++posBuffer] = '\0';
+    buffer[posBuffer++] = '\0';
     for (int i = 0; i < posBuffer; i++)
     {
         input[i] = buffer[i];
     }
-    input[posBuffer]='\0';  
+    //input[posBuffer]='\0';  
     return 1;
 }
 
@@ -390,6 +395,7 @@ int emptyTillParenthesis(char *buffer, int posBuffer, char *pila, int posPila)
         diferencia++;
     }
     buffer[posBuffer] = '\0';
+    pila[posPila]='\0';
     return diferencia;
 }
 
@@ -480,8 +486,9 @@ int scanfIO(char *buff)
             cant = 0;
             break;
         case 2:
-            if (status % 2)
-                return 0; //cambiar pantalla
+            if (status % 2){
+                return -1; //cambiar pantalla
+            }
             break;
         case 3:
             buff[cant++] = c;
