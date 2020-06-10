@@ -25,7 +25,7 @@ const char *helpDescriptions[MODULES] = {
     "date -> Imprime fecha actual",
     "cpuid -> Imprime marca y modelo del procesador",
     "diverror -> Genera una excepcion de division por 0",
-    "inforeg -> Imprime el estado de los registros. Presione ESC para realizar un Snap",
+    "inforeg -> Imprime el estado de los registros. Presione Alt Izq para realizar un Snap",
     "printmem ptr -> realiza un volcado de memoria de 32 bytes a partir de ptr=0x...",
     "invopcode -> Genera una excepcion de invalid opcode",
     "clear -> Clear the shell"};

@@ -58,7 +58,7 @@ static void write_key(uint64_t *rsp)
     case 0x9D:
         ctrl = 0;
         break;
-    case 0x81:
+    case 0x38:
         snap_register(rsp,&(rsp[15]));
         break;
     default:
