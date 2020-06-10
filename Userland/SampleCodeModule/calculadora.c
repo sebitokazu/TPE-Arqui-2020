@@ -296,7 +296,7 @@ int getInversePrefija(char *input, int cant)
     {
         buffer[posBuffer++] = input[0];
     }
-    
+
     for (int i = 1; i < cant - 1; i++)
     {
         char aux = input[i];
@@ -359,7 +359,8 @@ int getInversePrefija(char *input, int cant)
     if (ultimo == '(')
     {
         if (cantParentesis!=1)
-            return terminarExpresion();        
+            return terminarExpresion();
+        cantParentesis--;
         int diferencia = emptyTillParenthesis(buffer, posBuffer, pila, posPila);
         posBuffer += diferencia;
         posPila -= diferencia;
@@ -370,6 +371,9 @@ int getInversePrefija(char *input, int cant)
     {
         buffer[posBuffer++] = ultimo;
     }
+
+    if(cantParentesis!=0)
+        return terminarExpresion();
 
     if (pila[0] != '\0')
     {
